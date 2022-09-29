@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends Common implements Serializable {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,16 +32,4 @@ public class User {
 	@Column(nullable = false, length = 50)
 	@Enumerated(EnumType.STRING)
 	private UserRole role;
-
-	@CreationTimestamp
-	@Column(nullable = false, length = 20, updatable = false)
-	private LocalDateTime createdAt;                        // 등록 일자
-
-	@UpdateTimestamp
-	@Column(length = 20)
-	private LocalDateTime updatedAt;                        // 수정 일자
-
-	@Setter
-	@Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT true")
-	private Boolean isEnable = true;
 }
