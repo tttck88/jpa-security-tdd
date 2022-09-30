@@ -7,7 +7,6 @@ import com.example.domain.UserDetailResponse;
 import com.example.enums.UserRole;
 import com.example.exception.UserErrorResult;
 import com.example.exception.UserException;
-import com.example.exception.UserNotFoundException;
 import com.example.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -16,13 +15,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static com.example.enums.UserRole.ROLE_ADMIN;
 
 @Service
 @RequiredArgsConstructor
@@ -65,6 +60,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	public MyUserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
 		return userRepository.findByEmail(email)
 			.map(u -> new MyUserDetails(u, Collections.singleton(new SimpleGrantedAuthority(u.getRole().getValue()))))
-			.orElseThrow(() -> new UserNotFoundException(email));
+			.orElseThrow(() -> new UserException(UserErrorResult.USER_NOT_FOUND));
 	}
 }

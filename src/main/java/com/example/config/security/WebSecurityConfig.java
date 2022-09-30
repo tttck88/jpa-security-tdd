@@ -1,6 +1,7 @@
 package com.example.config.security;
 
 import com.example.handler.CustomLoginSuccessHandler;
+import com.example.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -21,7 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-	private final UserDetailsService userDetailsService;
+	private final UserDetailsServiceImpl userDetailsServiceImpl;
 
 	@Override
 	public void configure(WebSecurity web) {
@@ -52,7 +53,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public CustomAuthenticationProvider customAuthenticationProvider() {
-		return new CustomAuthenticationProvider(userDetailsService, bCryptPasswordEncoder());
+		return new CustomAuthenticationProvider(userDetailsServiceImpl, bCryptPasswordEncoder());
 	}
 
 	@Bean

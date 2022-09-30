@@ -7,8 +7,6 @@ import com.example.enums.UserRole;
 import com.example.exception.UserErrorResult;
 import com.example.exception.UserException;
 import com.example.repository.UserRepository;
-import javassist.bytecode.DuplicateMemberException;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -58,7 +56,7 @@ class UserDetailsServiceImplTest {
 	    // given
 		doReturn(Optional.empty()).when(userRepository).findByEmail(email);
 		doReturn(User.builder().email(email).pw(pw).role(role).build()).when(userRepository).save(any(User.class));
-	    
+
 	    // when
 		final UserAddResponse result = target.registerUser(email, pw, role);
 	    
@@ -112,6 +110,17 @@ class UserDetailsServiceImplTest {
 	}
 
 	// 회원 로그인...
+	@Test
+	public void 회원로그인실패_계정이존재하지않음() {
+	    // given
+		doReturn(Optional.empty()).when(userRepository).findByEmail(email);
+	    
+	    // when
+		final UserException result = assertThrows(UserException.class, () -> target.loadUserByUsername(email));
+	    
+	    // then
+		assertThat(result.getErrorResult()).isEqualTo(UserErrorResult.USER_NOT_FOUND);
+	}
 
 	// 회원 로그아웃...
 
