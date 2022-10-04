@@ -24,10 +24,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
-class UserDetailsServiceImplTest {
+class UserServiceImplTest {
 
 	@InjectMocks
-	private UserDetailsServiceImpl target;
+	private UserService target;
 	@Mock
 	private UserRepository userRepository;
 	@Mock
@@ -86,11 +86,11 @@ class UserDetailsServiceImplTest {
 	@Test
 	public void 회원상세조회_없음() {
 	    // given
-		doReturn(Optional.empty()).when(userRepository).findByEmail(email);
+		doReturn(Optional.empty()).when(userRepository).findById(-1L);
 	    
 	    // when
 		final UserException result = assertThrows(UserException.class,
-			() -> target.getUser(email));
+			() -> target.getUser(-1L));
 	    
 	    // then
 		assertThat(result.getErrorResult()).isEqualTo(UserErrorResult.USER_NOT_FOUND);
@@ -99,10 +99,10 @@ class UserDetailsServiceImplTest {
 	@Test
 	public void 회원상세조회성공() {
 	    // given
-		doReturn(Optional.of(User.builder().email(email).build())).when(userRepository).findByEmail(email);
+		doReturn(Optional.of(User.builder().id(-1L).email(email).build())).when(userRepository).findById(-1L);
 
 	    // when
-	    final UserDetailResponse result = target.getUser(email);
+	    final UserDetailResponse result = target.getUser(-1L);
 
 	    // then
 		assertThat(result).isNotNull();
@@ -113,13 +113,10 @@ class UserDetailsServiceImplTest {
 	@Test
 	public void 회원로그인실패_계정이존재하지않음() {
 	    // given
-		doReturn(Optional.empty()).when(userRepository).findByEmail(email);
-	    
+
 	    // when
-		final UserException result = assertThrows(UserException.class, () -> target.loadUserByUsername(email));
-	    
+
 	    // then
-		assertThat(result.getErrorResult()).isEqualTo(UserErrorResult.USER_NOT_FOUND);
 	}
 
 	// 회원 로그아웃...

@@ -1,7 +1,6 @@
 package com.example.config.security;
 
 import com.example.handler.CustomLoginSuccessHandler;
-import com.example.service.UserDetailsServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +21,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-	private final UserDetailsServiceImpl userDetailsServiceImpl;
+	private final UserDetailsService userDetailsService;
 
 	@Override
 	public void configure(WebSecurity web) {
@@ -31,8 +30,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	public void configure(HttpSecurity http) throws Exception {
-		http.csrf().disable().authorizeRequests()
-			.antMatchers("/admin").hasRole("ADMIN")
+		http.csrf().disable()
+			.authorizeRequests()
 			.anyRequest().permitAll()
 			.and()
 			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
@@ -42,10 +41,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 			.addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 	}
 
+	@Override
+	public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) {
+		authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider());
+	}
+
 	@Bean
 	CustomAuthenticationFilter customAuthenticationFilter() throws Exception {
 		CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManager());
-		customAuthenticationFilter.setFilterProcessesUrl("/user/login");
+		customAuthenticationFilter.setFilterProcessesUrl("/api/user/login");
 		customAuthenticationFilter.setAuthenticationSuccessHandler(customLoginSuccessHandler());
 		customAuthenticationFilter.afterPropertiesSet();
 		return customAuthenticationFilter;
@@ -53,7 +57,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Bean
 	public CustomAuthenticationProvider customAuthenticationProvider() {
-		return new CustomAuthenticationProvider(userDetailsServiceImpl, bCryptPasswordEncoder());
+		return new CustomAuthenticationProvider(userDetailsService, bCryptPasswordEncoder());
 	}
 
 	@Bean
@@ -64,11 +68,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	@Bean
 	public CustomLoginSuccessHandler customLoginSuccessHandler() {
 		return new CustomLoginSuccessHandler();
-	}
-
-	@Override
-	public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) {
-		authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider());
 	}
 }
 
