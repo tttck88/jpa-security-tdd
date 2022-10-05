@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.common.GlobalExceptionHandler;
+import com.example.constants.AuthConstants;
 import com.example.domain.UserAddResponse;
 import com.example.domain.UserDetailResponse;
 import com.example.domain.UserRequest;
@@ -37,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -47,6 +50,10 @@ class UserControllerTest {
 	private WebApplicationContext context;
 	private MockMvc mockMvc;
 	private Gson gson;
+	private String token = "eyJyZWdEYXRlIjoxNjY0OTQ4MjU5ODYyLCJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9" +
+		".eyJyb2xlIjoiUk9MRV9BRE1JTiIsImV4cCI6MTY2NzU0MDI1OSwiZW1haWwiOiJ0ZXN0QGVtYWlsLmNvbSJ9" +
+		".OSTmpfAh3AQ0t8JnkjjHW1RHA2tFAD8f2pNitUdeq44";
+
 
 	@BeforeEach
 	public void init() {
@@ -65,7 +72,7 @@ class UserControllerTest {
 	@Test
 	public void 회원등록성공() throws Exception {
 		// given
-		final String url = "/api/user/";
+		final String url = "/api/user/signUp";
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -83,12 +90,12 @@ class UserControllerTest {
 
 		assertThat(response.getEmail()).isEqualTo("test");
 	}
-	
+
 	@Test
-	public void 회원목록조회성공() throws Exception {
+	public void 회원목록조회실패_헤더에토큰이없음() throws Exception {
 	    // given
-		final String url ="/api/user/findAll";
-	    
+		final String url = "/api/user/findAll";
+
 	    // when
 		final ResultActions resultActions = mockMvc.perform(
 			MockMvcRequestBuilders.get(url)
@@ -96,9 +103,25 @@ class UserControllerTest {
 		);
 
 	    // then
+		resultActions.andExpect(status().is3xxRedirection()).andDo(print());
+	}
+
+	@Test
+	public void 회원목록조회성공() throws Exception {
+	    // given
+		final String url ="/api/user/findAll";
+
+	    // when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.get(url)
+				.header(AuthConstants.AUTH_HEADER, AuthConstants.TOKEN_TYPE + " " + token)
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
+	    // then
 		resultActions.andExpect(status().isOk());
 	}
-	
+
 	@Test
 	public void 회원상세조회실패_회원이없음() throws Exception {
 	    // given
@@ -107,45 +130,62 @@ class UserControllerTest {
 	    // when
 		ResultActions resultActions = mockMvc.perform(
 			MockMvcRequestBuilders.get(url)
+				.header(AuthConstants.AUTH_HEADER, AuthConstants.TOKEN_TYPE + " " + token)
 				.contentType(MediaType.APPLICATION_JSON)
 		);
 
 	    // then
 		resultActions.andExpect(status().isNotFound());
 	}
-	
+
+	private void registerUser(UserRequest request) throws Exception {
+		final String url = "/api/user/signUp";
+
+		mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(gson.toJson(request))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+	}
+
 	@Test
 	public void 회원로그인실패_패스워드가틀림() throws Exception {
 	    // given
-		final String url1 = "/api/user/signUp";
-		final String url2 = "/api/user/login";
+		final String url = "/api/user/login";
 		final String email = "test@email.com";
 		final String pw = "password";
-
-		mockMvc.perform(
-			MockMvcRequestBuilders.post(url1)
-				.content(gson.toJson(UserRequest.builder().email(email).pw(pw).role(UserRole.ROLE_ADMIN).build()))
-				.contentType(MediaType.APPLICATION_JSON)
-		);
+		final UserRole role = UserRole.ROLE_ADMIN;
+		registerUser(UserRequest.builder().email(email).pw(pw).role(role).build());
 
 	    // when
 		ResultActions resultActions = mockMvc.perform(
-			MockMvcRequestBuilders.post(url2)
-				.content(gson.toJson(UserRequest.builder().email(email).pw(pw).role(UserRole.ROLE_ADMIN).build()))
+			MockMvcRequestBuilders.post(url)
+				.content(gson.toJson(UserRequest.builder().email(email).pw("wrong" + pw).role(role).build()))
 				.contentType(MediaType.APPLICATION_JSON)
 		);
 
 	    // then
 		resultActions.andExpect(status().is4xxClientError());
 	}
-	
+
 	@Test
-	public void 회원로그인성공() {
+	public void 회원로그인성공() throws Exception {
 	    // given
-	    
+		final String url = "/api/user/login";
+		final String email = "test@email.com";
+		final String pw = "password";
+		final UserRole role = UserRole.ROLE_ADMIN;
+		registerUser(UserRequest.builder().email(email).pw(pw).role(role).build());
+
 	    // when
-	    
+		ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.post(url)
+				.content(gson.toJson(UserRequest.builder().email(email).pw(pw).role(role).build()))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+
 	    // then
+		resultActions.andExpect(status().isOk()).andDo(print());
 	}
 }
 
