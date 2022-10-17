@@ -1,5 +1,6 @@
 package com.example.config.security;
 
+import com.example.enums.UserRole;
 import com.example.handler.CustomLoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
@@ -32,18 +33,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	public void configure(HttpSecurity http) throws Exception {
 		http.csrf().disable()
 			.authorizeRequests()
-			.anyRequest().permitAll()
+				.antMatchers("/api/user/signUp","/api/user/login").permitAll()
+				.anyRequest().permitAll()
 			.and()
-			.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			.and()
-			.formLogin()
-			.disable()
-			.addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+				.formLogin()
+				.disable()
+				.logout()
+				.invalidateHttpSession(true);
+//			.addFilterBefore(customAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 	}
 
 	@Override
-	public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) {
-		authenticationManagerBuilder.authenticationProvider(customAuthenticationProvider());
+	public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
+		authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder());
 	}
 
 	@Bean
@@ -56,18 +58,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	@Bean
-	public CustomAuthenticationProvider customAuthenticationProvider() {
-		return new CustomAuthenticationProvider(userDetailsService, bCryptPasswordEncoder());
+	public CustomLoginSuccessHandler customLoginSuccessHandler() {
+		return new CustomLoginSuccessHandler();
 	}
+
+//	@Bean
+//	public CustomAuthenticationProvider customAuthenticationProvider() {
+//		return new CustomAuthenticationProvider(userDetailsService, bCryptPasswordEncoder());
+//	}
 
 	@Bean
 	public BCryptPasswordEncoder bCryptPasswordEncoder() {
 		return new BCryptPasswordEncoder();
-	}
-
-	@Bean
-	public CustomLoginSuccessHandler customLoginSuccessHandler() {
-		return new CustomLoginSuccessHandler();
 	}
 }
 

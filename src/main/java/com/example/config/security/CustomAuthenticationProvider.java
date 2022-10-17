@@ -1,6 +1,6 @@
 package com.example.config.security;
 
-import com.example.domain.MyUserDetails;
+import com.example.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -22,7 +22,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 		final String userEmail = token.getName();
 		final String userPw = (String)token.getCredentials();
 
-		final MyUserDetails userDetails = (MyUserDetails) userDetailsService.loadUserByUsername(userEmail);
+		final User userDetails = (User) userDetailsService.loadUserByUsername(userEmail);
 
 		if (!passwordEncoder.matches(userPw, userDetails.getPassword())) {
 			throw new BadCredentialsException(userDetails.getUsername() + "Invalid password");

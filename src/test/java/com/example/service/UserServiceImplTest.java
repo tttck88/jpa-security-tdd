@@ -7,6 +7,7 @@ import com.example.enums.UserRole;
 import com.example.exception.UserErrorResult;
 import com.example.exception.UserException;
 import com.example.repository.UserRepository;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -63,6 +64,41 @@ class UserServiceImplTest {
 	    // then
 		assertThat(result).isNotNull();
 		assertThat(result.getEmail()).isEqualTo(email);
+		assertThat(result.getRole()).isEqualTo(role);
+	}
+	
+	@Test
+	public void 회원수정실패_존재하지않는계정() {
+	    // given
+		final Long id = -1L;
+		final String email = "tttck88@gmail.com";
+		final String pw = "123456789";
+		final UserRole role = UserRole.ROLE_USER;
+
+		doReturn(Optional.empty()).when(userRepository).findByEmail(email);
+
+	    // when
+		final UserException result = assertThrows(UserException.class,
+			() -> target.updateUser(email, pw, role));
+
+		// then
+		assertThat(result.getErrorResult()).isEqualTo(UserErrorResult.USER_NOT_FOUND);
+	}
+	
+	@Test
+	public void 회원수정성공() {
+	    // given
+		final Long id = -1L;
+		final String email = "tttck88@gmail.com";
+		final String pw = "123456789";
+		final UserRole role = UserRole.ROLE_USER;
+
+		doReturn(Optional.of(User.builder().id(id).email(email).build())).when(userRepository).findByEmail(email);
+
+		// when
+		UserAddResponse result = target.updateUser(email,pw,role);
+	    
+	    // then
 		assertThat(result.getRole()).isEqualTo(role);
 	}
 

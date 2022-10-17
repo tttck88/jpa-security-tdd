@@ -1,27 +1,16 @@
 package com.example.controller;
 
-import com.example.common.GlobalExceptionHandler;
 import com.example.constants.AuthConstants;
 import com.example.domain.UserAddResponse;
-import com.example.domain.UserDetailResponse;
 import com.example.domain.UserRequest;
 import com.example.enums.UserRole;
-import com.example.exception.UserErrorResult;
-import com.example.exception.UserException;
 import com.example.service.UserService;
 import com.google.gson.Gson;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -29,17 +18,12 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import javax.xml.transform.Result;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
+
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -72,7 +56,7 @@ class UserControllerTest {
 	@Test
 	public void 회원등록성공() throws Exception {
 		// given
-		final String url = "/api/user/signUp";
+		final String url = "/api/user";
 
 		// when
 		final ResultActions resultActions = mockMvc.perform(
@@ -90,11 +74,62 @@ class UserControllerTest {
 
 		assertThat(response.getEmail()).isEqualTo("test");
 	}
+	
+	@Test
+	public void 회원수정실패_존재하지않는계정() throws Exception {
+	    // given
+		final String url = "/api/user";
+
+		final String email = "test@email.com";
+		final String pw = "password";
+		final UserRole role = UserRole.ROLE_ADMIN;
+
+		registerUser(UserRequest.builder().email(email).pw(pw).role(role).build());
+	    
+	    // when
+		final ResultActions resultActions = mockMvc.perform(
+			MockMvcRequestBuilders.patch(url)
+				.content(gson.toJson(UserRequest.builder().email("test1@email.com").role(UserRole.ROLE_USER).build()))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+	    
+	    // then
+		resultActions.andExpect(status().isNotFound());
+	}
+	
+	@Test
+	public void 회원수정성공() throws Exception {
+	    // given
+		final String url = "/api/user";
+
+		final String email = "test@email.com";
+		final String pw = "password";
+		final UserRole role = UserRole.ROLE_ADMIN;
+
+		registerUser(UserRequest.builder().email(email).pw(pw).role(role).build());
+	    
+	    // when
+		final ResultActions resultActions =  mockMvc.perform(
+			MockMvcRequestBuilders.patch(url)
+				.content(gson.toJson(UserRequest.builder().email(email).role(UserRole.ROLE_USER).build()))
+				.contentType(MediaType.APPLICATION_JSON)
+		);
+	    
+	    // then
+		resultActions.andExpect(status().isOk());
+
+		final UserAddResponse response = gson.fromJson(resultActions.andReturn()
+			.getResponse()
+			.getContentAsString(StandardCharsets.UTF_8), UserAddResponse.class);
+
+		assertThat(response.getRole()).isEqualTo(UserRole.ROLE_USER);
+
+	}
 
 	@Test
 	public void 회원목록조회실패_헤더에토큰이없음() throws Exception {
 	    // given
-		final String url = "/api/user/findAll";
+		final String url = "/api/user";
 
 	    // when
 		final ResultActions resultActions = mockMvc.perform(
@@ -109,7 +144,7 @@ class UserControllerTest {
 	@Test
 	public void 회원목록조회성공() throws Exception {
 	    // given
-		final String url ="/api/user/findAll";
+		final String url ="/api/user";
 
 	    // when
 		final ResultActions resultActions = mockMvc.perform(
@@ -139,7 +174,7 @@ class UserControllerTest {
 	}
 
 	private void registerUser(UserRequest request) throws Exception {
-		final String url = "/api/user/signUp";
+		final String url = "/api/user";
 
 		mockMvc.perform(
 			MockMvcRequestBuilders.post(url)
@@ -186,6 +221,15 @@ class UserControllerTest {
 
 	    // then
 		resultActions.andExpect(status().isOk()).andDo(print());
+	}
+	
+	@Test
+	public void 토큰발급() {
+	    // given
+	    
+	    // when
+	    
+	    // then
 	}
 }
 

@@ -1,7 +1,6 @@
 package com.example.handler;
 
 import com.example.constants.AuthConstants;
-import com.example.domain.MyUserDetails;
 import com.example.domain.User;
 import com.example.utils.TokenUtils;
 import org.springframework.security.core.Authentication;
@@ -14,7 +13,7 @@ public class CustomLoginSuccessHandler extends SavedRequestAwareAuthenticationSu
 	@Override
 	public void onAuthenticationSuccess(final HttpServletRequest request, final HttpServletResponse response,
 	                                    final Authentication authentication) {
-		final User user = ((MyUserDetails) authentication.getPrincipal()).getUser();
+		final User user = ((User) authentication.getPrincipal());
 		final String token = TokenUtils.generateJwtToken(user);
 		response.addHeader(AuthConstants.AUTH_HEADER, AuthConstants.TOKEN_TYPE + " " + token);
 	}

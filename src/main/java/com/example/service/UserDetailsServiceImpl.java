@@ -1,6 +1,5 @@
 package com.example.service;
 
-import com.example.domain.MyUserDetails;
 import com.example.domain.User;
 import com.example.domain.UserAddResponse;
 import com.example.domain.UserDetailResponse;
@@ -27,9 +26,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	private final UserRepository userRepository;
 
 	@Override
-	public MyUserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+	public User loadUserByUsername(String email) throws UsernameNotFoundException {
 		return userRepository.findByEmail(email)
-			.map(u -> new MyUserDetails(u, Collections.singleton(new SimpleGrantedAuthority(u.getRole().getValue()))))
+			.map(u -> new User(u, Collections.singleton(new SimpleGrantedAuthority(u.getRole().getValue()))))
 			.orElseThrow(() -> new UserException(UserErrorResult.USER_NOT_FOUND));
 	}
 }

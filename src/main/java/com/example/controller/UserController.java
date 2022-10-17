@@ -25,8 +25,15 @@ public class UserController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(userAddResponse);
 	}
 
+	// 회원 수정
+	@PatchMapping("/api/user")
+	public ResponseEntity<UserAddResponse> updateUser(@RequestBody final UserRequest userRequest) {
+		final UserAddResponse userAddResponse = userService.updateUser(userRequest.getEmail(), userRequest.getPw(), userRequest.getRole());
+		return ResponseEntity.status(HttpStatus.OK).body(userAddResponse);
+	}
+
 	// 회원 목록조회
-	@GetMapping("/api/user/findAll")
+	@GetMapping("/api/user")
 	public ResponseEntity<List<UserDetailResponse>> getUserList() {
 		return ResponseEntity.status(HttpStatus.OK).body(userService.getUserList());
 	}

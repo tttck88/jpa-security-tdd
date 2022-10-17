@@ -15,5 +15,11 @@ public class UserRequest {
 
 	private final String pw;
 
+	private final String name;
+
+	private final String phoneNum;
+
+	private final String address;
+
 	private final UserRole role;
 }

@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +27,21 @@ public class UserService {
 		}
 
 		final User user = userRepository.save(User.builder().email(email).pw(passwordEncoder.encode(pw)).role(role).build());
+
+		return UserAddResponse.builder()
+			.id(user.getId())
+			.email(user.getEmail())
+			.role(user.getRole())
+			.build();
+	}
+
+	public UserAddResponse updateUser(String email, String pw, UserRole role) {
+		User user = userRepository.findByEmail(email).orElse(null);
+		if(user != null) {
+			user.updateUser(email, pw, role);
+		} else {
+			throw new UserException(UserErrorResult.USER_NOT_FOUND);
+		}
 
 		return UserAddResponse.builder()
 			.id(user.getId())
@@ -49,5 +65,4 @@ public class UserService {
 			.map(user -> UserDetailResponse.builder().id(user.getId()).email(user.getEmail()).role(user.getRole()).build())
 			.orElseThrow(() -> new UserException(UserErrorResult.USER_NOT_FOUND));
 	}
-
 }
